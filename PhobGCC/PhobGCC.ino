@@ -17,8 +17,8 @@
 //#include "src/Phob1_1Teensy4_0DiodeShort.h"// For PhobGCC board 1.1 with Teensy 4.0 and the diode shorted
 //#include "src/Phob1_2Teensy4_0.h"          // For PhobGCC board 1.2.x with Teensy 4.0
 
-#define BUILD_RELEASE
-//#define BUILD_DEV
+//#define BUILD_RELEASE
+#define BUILD_DEV
 
 using namespace Eigen;
 
@@ -255,6 +255,8 @@ uint8_t hardwareR;
 uint8_t hardwareZ;
 uint8_t hardwareX;
 uint8_t hardwareY;
+uint8_t hardwareA;
+uint8_t hardwareB;
 
 float _aStickX;
 float _posALastX;
@@ -447,7 +449,7 @@ void setup() {
 
 void loop() {
 	//check if we should be reporting values yet
-	if(btn.B && !_running){
+	if(hardwareB && !_running){
 		Serial.println("Starting to report values");
 		_running=true;
 	}
@@ -459,8 +461,8 @@ void loop() {
 	if(_currentCalStep >= 0){
 		if(_calAStick){
 			if(_currentCalStep >= _noOfCalibrationPoints){//adjust notch angles
-				adjustNotch(_currentCalStep, _dT, hardwareY, hardwareX, btn.B, true, _measuredNotchAngles, _aNotchAngles, _aNotchStatus);
-				if(hardwareY || hardwareX || (btn.B)){//only run this if the notch was adjusted
+				adjustNotch(_currentCalStep, _dT, hardwareY, hardwareX, hardwareB, true, _measuredNotchAngles, _aNotchAngles, _aNotchStatus);
+				if(hardwareY || hardwareX || (hardwareB)){//only run this if the notch was adjusted
 					//clean full cal points again, feeding updated angles in
 					cleanCalPoints(_tempCalPointsX, _tempCalPointsY, _aNotchAngles, _cleanedPointsX, _cleanedPointsY, _notchPointsX, _notchPointsY, _aNotchStatus);
 					//linearize again
@@ -475,8 +477,8 @@ void loop() {
 		}
 		else{
 			if(_currentCalStep >= _noOfCalibrationPoints){//adjust notch angles
-				adjustNotch(_currentCalStep, _dT, hardwareY, hardwareX, btn.B, false, _measuredNotchAngles, _cNotchAngles, _cNotchStatus);
-				if(hardwareY || hardwareX || (btn.B)){//only run this if the notch was adjusted
+				adjustNotch(_currentCalStep, _dT, hardwareY, hardwareX, hardwareB, false, _measuredNotchAngles, _cNotchAngles, _cNotchStatus);
+				if(hardwareY || hardwareX || (hardwareB)){//only run this if the notch was adjusted
 					//clean full cal points again, feeding updated angles in
 					cleanCalPoints(_tempCalPointsX, _tempCalPointsY, _cNotchAngles, _cleanedPointsX, _cleanedPointsY, _notchPointsX, _notchPointsY, _cNotchStatus);
 					//linearize again
@@ -1238,6 +1240,8 @@ void readButtons(){
 	hardwareZ = !digitalRead(_pinZ);
 	hardwareX = !digitalRead(_pinX);
 	hardwareY = !digitalRead(_pinY);
+	hardwareA = !digitalRead(_pinA);
+	hardwareB = !digitalRead(_pinB);
 
 	bounceDr.update();
 	bounceDu.update();
@@ -1285,10 +1289,10 @@ void readButtons(){
 
 	//check the dpad buttons to change the controller settings
 	if(!_safeMode && (_currentCalStep == -1)) {
-		if(btn.A && hardwareX && hardwareY && btn.S) { //Safe Mode Toggle
+		if(hardwareA && hardwareX && hardwareY && btn.S) { //Safe Mode Toggle
 			_safeMode = true;
 			freezeSticks(4000);
-		} else if (btn.A && btn.B && hardwareZ && btn.S) { //Hard Reset
+		} else if (hardwareA && hardwareB && hardwareZ && btn.S) { //Hard Reset
 			resetDefaults();
 			freezeSticks(2000);
 		} else if (hardwareX && hardwareY && btn.Du) { //Increase Rumble
@@ -1305,19 +1309,19 @@ void readButtons(){
 			//nothing
 			freezeSticks(2000);
 #endif // RUMBLE
-		} else if (hardwareX && hardwareY && btn.B && !btn.A) { //Show current rumble setting
+		} else if (hardwareX && hardwareY && hardwareB && !hardwareA) { //Show current rumble setting
 #ifdef RUMBLE
 			showRumble(2000);
 #else // RUMBLE
 			freezeSticks(2000);
 #endif // RUMBLE
-		} else if (btn.A && hardwareX && hardwareY && hardwareL) { //Analog Calibration
+		} else if (hardwareA && hardwareX && hardwareY && hardwareL) { //Analog Calibration
 			Serial.println("Calibrating the A stick");
 			_calAStick = true;
 			_currentCalStep ++;
 			_advanceCal = true;
 			freezeSticks(2000);
-		} else if (btn.A && hardwareX && hardwareY && hardwareR) { //C-stick Calibration
+		} else if (hardwareA && hardwareX && hardwareY && hardwareR) { //C-stick Calibration
 			Serial.println("Calibrating the C stick");
 			_calAStick = false;
 			_currentCalStep ++;
@@ -1331,13 +1335,13 @@ void readButtons(){
 			adjustSnapback(true, false, true);
 		} else if(hardwareL && hardwareY && btn.Dd) { //Decrease Analog Y-Axis Snapback Filtering
 			adjustSnapback(true, false, false);
-		} else if(hardwareL && btn.A && btn.Du) { //Increase X-axis Delay
+		} else if(hardwareL && hardwareA && btn.Du) { //Increase X-axis Delay
 			adjustSmoothing(true, true, true);
-		} else if(hardwareL && btn.A && btn.Dd) { //Decrease X-axis Delay
+		} else if(hardwareL && hardwareA && btn.Dd) { //Decrease X-axis Delay
 			adjustSmoothing(true, true, false);
-		} else if(hardwareL && btn.B && btn.Du) { //Increase Y-axis Delay
+		} else if(hardwareL && hardwareB && btn.Du) { //Increase Y-axis Delay
 			adjustSmoothing(true, false, true);
-		} else if(hardwareL && btn.B && btn.Dd) { //Decrease Y-axis Delay
+		} else if(hardwareL && hardwareB && btn.Dd) { //Decrease Y-axis Delay
 			adjustSmoothing(true, false, false);
 		} else if(hardwareL && btn.S && btn.Dd) { //Show Current Analog Settings
 			showAstickSettings();
@@ -1349,13 +1353,13 @@ void readButtons(){
 			adjustCstickSmoothing(true, false, true);
 		} else if(hardwareR && hardwareY && btn.Dd) { //Decrease C-stick Y-Axis Snapback Filtering
 			adjustCstickSmoothing(true, false, false);
-		} else if(hardwareR && btn.A && btn.Du) { //Increase C-stick X Offset
+		} else if(hardwareR && hardwareA && btn.Du) { //Increase C-stick X Offset
 			adjustCstickOffset(true, true, true);
-		} else if(hardwareR && btn.A && btn.Dd) { //Decrease C-stick X Offset
+		} else if(hardwareR && hardwareA && btn.Dd) { //Decrease C-stick X Offset
 			adjustCstickOffset(true, true, false);
-		} else if(hardwareR && btn.B && btn.Du) { //Increase C-stick Y Offset
+		} else if(hardwareR && hardwareB && btn.Du) { //Increase C-stick Y Offset
 			adjustCstickOffset(true, false, true);
-		} else if(hardwareR && btn.B && btn.Dd) { //Decrease C-stick Y Offset
+		} else if(hardwareR && hardwareB && btn.Dd) { //Decrease C-stick Y Offset
 			adjustCstickOffset(true, false, false);
 		} else if(hardwareR && btn.S && btn.Dd) { //Show Current C-stick SEttings
 			showCstickSettings();
@@ -1379,19 +1383,19 @@ void readButtons(){
 		} else if(hardwareY && hardwareZ && btn.S) { //Swap Y and Z
 			readJumpConfig(false, true);
 			freezeSticks(2000);
-		} else if(btn.A && hardwareX && hardwareY && hardwareZ) { // Reset X/Y/Z Config
+		} else if(hardwareA && hardwareX && hardwareY && hardwareZ) { // Reset X/Y/Z Config
 			readJumpConfig(false, false);
 			freezeSticks(2000);
 		}
 	} else if (_currentCalStep == -1) { //Safe Mode Disabled, Lock Settings
-		if(btn.A && hardwareX && hardwareY && btn.S) { //Safe Mode Toggle
+		if(hardwareA && hardwareX && hardwareY && btn.S) { //Safe Mode Toggle
 			if (!_running) {//wake it up if not already running
 				_running = true;
 			}
 			_safeMode = false;
 			freezeSticks(2000);
 		}
-		if(hardwareL && hardwareR && btn.A && btn.S) {
+		if(hardwareL && hardwareR && hardwareA && btn.S) {
 			btn.L = (uint8_t) (1);
 			btn.R = (uint8_t) (1);
 			btn.A = (uint8_t) (1);
@@ -1647,6 +1651,8 @@ void freezeSticks(const int time) {
 	hardwareX = (uint8_t) 0;
 	hardwareY = (uint8_t) 0;
 	hardwareZ = (uint8_t) 0;
+	hardwareA = (uint8_t) 0;
+	hardwareB = (uint8_t) 0;
 
 	int startTime = millis();
 	int delta = 0;
@@ -1668,6 +1674,8 @@ void clearButtons(const int time) {
 	hardwareX = (uint8_t) 0;
 	hardwareY = (uint8_t) 0;
 	hardwareZ = (uint8_t) 0;
+	hardwareA = (uint8_t) 0;
+	hardwareB = (uint8_t) 0;
 
 	int startTime = millis();
 	int delta = 0;
