@@ -20,8 +20,8 @@ extern "C" uint32_t set_arm_clock(uint32_t frequency);
 //#include "src/Phob1_1Teensy4_0DiodeShort.h"// For PhobGCC board 1.1 with Teensy 4.0 and the diode shorted
 //#include "src/Phob1_2Teensy4_0.h"          // For PhobGCC board 1.2.x with Teensy 4.0
 
-#define BUILD_RELEASE
-//#define BUILD_DEV
+//#define BUILD_RELEASE
+#define BUILD_DEV
 
 //#define ENABLE_LED
 
@@ -2221,10 +2221,14 @@ void readSticks(int readA, int readC){
 	notchRemap(posCx, posCy, &remappedCx, &remappedCy, _cAffineCoeffs, _cBoundaryAngles,_noOfNotches);
 
 	//Clamp values from -125 to +125
-	remappedAx = min(125, max(-125, remappedAx));
-	remappedAy = min(125, max(-125, remappedAy));
-	remappedCx = min(125, max(-125, remappedCx+_cXOffset));
-	remappedCy = min(125, max(-125, remappedCy+_cYOffset));
+	//remappedAx = min(125, max(-125, remappedAx));
+	//remappedAy = min(125, max(-125, remappedAy));
+	//remappedCx = min(125, max(-125, remappedCx+_cXOffset));
+	//remappedCy = min(125, max(-125, remappedCy+_cYOffset));
+	remappedAx = min(125, max(-125, posAx));
+	remappedAy = min(125, max(-125, posAy));
+	remappedCx = min(125, max(-125, posCx+_cXOffset));
+	remappedCy = min(125, max(-125, posCy+_cYOffset));
 
 	float hystVal = 0.3;
 	//assign the remapped values to the button struct
