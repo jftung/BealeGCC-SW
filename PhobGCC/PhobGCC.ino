@@ -1434,11 +1434,14 @@ void readButtons(){
 			_safeMode = false;
 			freezeSticks(2000);
 		}
-		if(hardwareL && hardwareR && btn.A && btn.S) {
+		if (hardwareL && hardwareR && btn.S) {
 			btn.L = (uint8_t) (1);
 			btn.R = (uint8_t) (1);
-			btn.A = (uint8_t) (1);
 			btn.S = (uint8_t) (1);
+		}
+		else if (hardwareL && hardwareR) {
+			btn.L = (uint8_t) (0);
+			btn.R = (uint8_t) (1);
 		}
 	}
 

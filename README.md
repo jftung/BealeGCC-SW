@@ -1,4 +1,4 @@
-# PhobGCC
+# BealeGCC
 Gamecube controller motherboard using a teensy as the microcontroller. Aim is to make an accessible and consistent controller. Has the option of using hall effect sensors instead of potentiometers, notch calibration, and snapback filtering.
 
 If your interested in making one, join the project discord to ask questions and get the most up to date information: https://discord.gg/eNJ7xWMvxf
